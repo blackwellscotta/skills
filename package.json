@@ -1,0 +1,16 @@
+{
+  "name": "blackwellscotta-skills",
+  "private": true,
+  "description": "Agent Skills by Scott Blackwell",
+  "license": "Apache-2.0",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "validate": "node scripts/validate.mjs",
+    "check": "node scripts/check-skills.mjs",
+    "sync": "node scripts/sync-local.mjs",
+    "package": "node scripts/package-zips.mjs"
+  }
+}

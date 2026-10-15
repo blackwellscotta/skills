@@ -1,0 +1,9 @@
+# Store text files with LF line endings, even when edited on Windows,
+# so SKILL.md frontmatter and scripts behave the same everywhere.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.gif binary
+*.pdf binary
+*.zip binary

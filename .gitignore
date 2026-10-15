@@ -1,0 +1,11 @@
+# Packaged skill zips
+dist/
+
+# OS and editor noise
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+__pycache__/
+*.pyc
+node_modules/

@@ -1,0 +1,11 @@
+{
+  "name": "blackwellscotta-skills",
+  "owner": {
+    "name": "Scott Blackwell"
+  },
+  "metadata": {
+    "description": "Agent Skills by Scott Blackwell",
+    "version": "1.0.0"
+  },
+  "plugins": []
+}
