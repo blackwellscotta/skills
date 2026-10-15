@@ -7,6 +7,9 @@
   "engines": {
     "node": ">=20"
   },
+  "skillsRepo": {
+    "sandbox": false
+  },
   "scripts": {
     "validate": "node scripts/validate.mjs",
     "check": "node scripts/check-skills.mjs",

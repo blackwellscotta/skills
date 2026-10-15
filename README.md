@@ -40,7 +40,7 @@ Or copy any folder under `skills/` into `~/.copilot/skills` (personal) or `.gith
 ```
 .claude-plugin/marketplace.json   groups skills into installable plugins
 skills/<name>/SKILL.md            one folder per published skill
-.claude/skills/add-skill/         repo helper skill (not published)
+.agents/skills/add-skill/         repo helper skill (not published)
 template/                         starting point for a new skill
 scripts/                          Node scripts, run with npm
 ```
@@ -52,7 +52,9 @@ scripts/                          Node scripts, run with npm
 3. Add it to the Skills section above.
 4. Run `npm run validate`.
 
-Or, with this repo open in VS Code (Copilot) or Claude Code, ask the agent to add a skill. The `add-skill` helper in `.claude/skills/` walks it through these steps.
+Or, with this repo open in VS Code, ask Copilot (in Agent mode) to add the skill. The `add-skill` helper in `.agents/skills/` walks it through these steps.
+
+Only finished skills go here. Drafts and experiments live in the private repo's sandbox until they're ready, and validation fails if anything besides the helper shows up in this repo's `.agents/skills/`.
 
 ### Commands
 

@@ -3,7 +3,8 @@
 //   1. Repo conventions           scripts/check-skills.mjs
 //   2. Agent Skills spec          the spec's reference validator (skills-ref),
 //                                 the standard GitHub Copilot implements; runs
-//                                 on published skills and repo helper skills
+//                                 on skills/, the repo helper, and sandbox
+//                                 drafts (drafts only warn, never fail)
 //   3. Claude Code                claude plugin validate . --strict
 //   4. GitHub Copilot (advisory)  gh skill publish --dry-run
 //
@@ -23,7 +24,7 @@
 // Usage: npm run validate
 
 import { checkSkills } from './check-skills.mjs';
-import { has, listSkillDirs, run } from './lib.mjs';
+import { has, listSandbox, listSkillDirs, repoSettings, run } from './lib.mjs';
 
 let failed = false;
 const section = (title) => console.log(`\n== ${title}`);
@@ -33,7 +34,10 @@ const missing = (what, install) => {
 };
 
 const published = listSkillDirs('skills');
-const helpers = listSkillDirs('.claude/skills');
+const { helpers, drafts } = listSandbox();
+// In the public repo, drafts are already a repo-convention error, so only
+// check them against the spec where a sandbox is allowed.
+const sandboxDrafts = repoSettings().sandbox ? drafts : [];
 
 // 1. Repo conventions
 section('Repo conventions');
@@ -63,6 +67,11 @@ section('Agent Skills spec');
     const [cmd, pre] = runner;
     for (const dir of [...published, ...helpers]) {
       if (!run(cmd, [...pre, 'validate', dir]).ok) failed = true;
+    }
+    for (const dir of sandboxDrafts) {
+      if (!run(cmd, [...pre, 'validate', dir]).ok) {
+        console.warn(`warning: draft ${dir} has spec problems (drafts don't fail validation; fix before graduating)`);
+      }
     }
     if (published.length === 0) console.log('No published skills yet.');
   }

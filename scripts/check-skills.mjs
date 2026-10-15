@@ -4,12 +4,14 @@
 //   2. Every skill has a description.
 //   3. Every skill is listed in at least one plugin in marketplace.json.
 //   4. Every skill path in marketplace.json points to a real skill.
+//   5. In a repo without a sandbox (the public repo), .agents/skills holds
+//      only the repo helper, so drafts can't be published by accident.
 //
 // Usage: npm run check
 
 import { existsSync } from 'node:fs';
 import { basename, join } from 'node:path';
-import { isMain, listSkillDirs, listedSkills, readFrontmatter, readManifest, repoRoot } from './lib.mjs';
+import { isMain, listSandbox, listSkillDirs, listedSkills, readFrontmatter, readManifest, repoRoot, repoSettings } from './lib.mjs';
 
 const NAME_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
@@ -51,6 +53,12 @@ export function checkSkills() {
   for (const path of listed) {
     if (!existsSync(join(repoRoot, path, 'SKILL.md'))) {
       errors.push(`marketplace.json lists ${path} but ${path}/SKILL.md does not exist`);
+    }
+  }
+
+  if (!repoSettings().sandbox) {
+    for (const draft of listSandbox().drafts) {
+      errors.push(`${draft}: drafts belong in the private repo's sandbox, not this repo. Move it there, or to skills/ if it's finished`);
     }
   }
 

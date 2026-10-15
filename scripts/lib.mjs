@@ -9,6 +9,27 @@ import { fileURLToPath } from 'node:url';
 export const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 export const manifestPath = join(repoRoot, '.claude-plugin', 'marketplace.json');
 
+// Repo helper skills live in the sandbox folder alongside any drafts.
+export const SANDBOX_DIR = '.agents/skills';
+export const HELPER_SKILLS = new Set(['add-skill']);
+
+// Repo settings from package.json, under "skillsRepo".
+//   sandbox: true   drafts are allowed in .agents/skills (private repo)
+//   sandbox: false  only the helper is allowed there (public repo)
+export function repoSettings() {
+  const pkg = JSON.parse(readFileSync(join(repoRoot, 'package.json'), 'utf8'));
+  return { sandbox: Boolean(pkg.skillsRepo?.sandbox) };
+}
+
+// Sandbox folders split into the repo helper(s) and drafts.
+export function listSandbox() {
+  const all = listSkillDirs(SANDBOX_DIR);
+  return {
+    helpers: all.filter((d) => HELPER_SKILLS.has(d.split('/').pop())),
+    drafts: all.filter((d) => !HELPER_SKILLS.has(d.split('/').pop())),
+  };
+}
+
 // Folders under `dir` (relative to `root`, this repo by default).
 // Returns root-relative paths with forward slashes, e.g. "skills/deck-review".
 export function listSkillDirs(dir, root = repoRoot) {
