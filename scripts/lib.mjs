@@ -98,14 +98,29 @@ export function listedSkills(manifest) {
   return listed;
 }
 
-// Run a command from the repo root, streaming its output. On Windows,
-// commands installed by npm or pip are .cmd/.exe shims, so go through the shell.
+// Quote one argument for the Windows command line when it needs it.
+function quoteWin(arg) {
+  const s = String(arg);
+  if (s !== '' && !/[\s"&|<>^%()!]/.test(s)) return s;
+  return `"${s.replace(/(\\*)"/g, '$1$1\\"').replace(/(\\+)$/, '$1$1')}"`;
+}
+
+// On Windows, tools installed by npm or pip are .cmd/.exe shims, so they have
+// to run through the shell. Build the command line ourselves rather than
+// passing an args array with `shell: true`, which newer Node versions warn
+// about. Elsewhere, run the program directly with no shell.
+function spawnTool(command, args, stdio) {
+  const options = { cwd: repoRoot, stdio };
+  if (process.platform === 'win32') {
+    const line = [command, ...args].map(quoteWin).join(' ');
+    return spawnSync(line, { ...options, shell: true });
+  }
+  return spawnSync(command, args, options);
+}
+
+// Run a command from the repo root, streaming its output.
 export function run(command, args = [], { quiet = false } = {}) {
-  const result = spawnSync(command, args, {
-    cwd: repoRoot,
-    stdio: quiet ? 'ignore' : 'inherit',
-    shell: process.platform === 'win32',
-  });
+  const result = spawnTool(command, args, quiet ? 'ignore' : 'inherit');
   if (result.error && result.error.code === 'ENOENT') return { found: false, ok: false };
   // On Windows the shell reports a missing command as exit code 1 with a
   // "not recognized" message, so check availability separately with `has`.
@@ -114,11 +129,7 @@ export function run(command, args = [], { quiet = false } = {}) {
 
 // True if `command` is available on PATH.
 export function has(command, args = ['--version']) {
-  const result = spawnSync(command, args, {
-    cwd: repoRoot,
-    stdio: 'ignore',
-    shell: process.platform === 'win32',
-  });
+  const result = spawnTool(command, args, 'ignore');
   return !result.error && result.status === 0;
 }
 
