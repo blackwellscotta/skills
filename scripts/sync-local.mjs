@@ -13,6 +13,11 @@
 // Targets (override with SKILL_TARGETS, separated by ; on Windows or : elsewhere):
 //   ~/.claude/skills   read by Claude Code and GitHub Copilot
 //   ~/.agents/skills   vendor-neutral location read by several agents
+//
+// If two repos have a skill with the same name (common while promoting a
+// skill from private to public), the first repo listed wins and you get a
+// warning. If an existing link points at a different copy, it is relinked
+// and you get a warning saying which copy it now points to.
 
 import { existsSync, lstatSync, mkdirSync, readlinkSync, symlinkSync, unlinkSync } from 'node:fs';
 import { homedir } from 'node:os';
@@ -28,6 +33,7 @@ const linkType = process.platform === 'win32' ? 'junction' : 'dir';
 
 let linked = 0;
 let skipped = 0;
+const seen = new Map(); // skill name -> path of the copy being linked
 
 for (const target of targets) mkdirSync(target, { recursive: true });
 
@@ -41,6 +47,14 @@ for (const repo of repos) {
     const skill = join(repo, rel);
     if (!existsSync(join(skill, 'SKILL.md'))) continue;
 
+    const name = basename(skill);
+    if (seen.has(name)) {
+      console.warn(`duplicate: '${name}' exists in more than one repo. Using ${seen.get(name)}, ignoring ${skill}`);
+      skipped++;
+      continue;
+    }
+    seen.set(name, skill);
+
     for (const target of targets) {
       const dest = join(target, basename(skill));
       let stat = null;
@@ -52,7 +66,9 @@ for (const repo of repos) {
         continue;
       }
       if (stat) {
-        if (resolve(readlinkSync(dest)) === resolve(skill)) { linked++; continue; }
+        const current = resolve(readlinkSync(dest));
+        if (current === resolve(skill)) { linked++; continue; }
+        console.warn(`relinked: ${dest} pointed to ${current}, now points to ${skill}`);
         unlinkSync(dest);
       }
       symlinkSync(skill, dest, linkType);
